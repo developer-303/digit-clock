@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Interactive Digital Clock</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #222;
+            color: white;
+            overflow: hidden;
+            flex-direction: column;
+        }
+        .container {
+            text-align: center;
+        }
+        #clock {
+            font-size: 6em;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        #timezone {
+            font-size: 1.5em;
+            margin-top: 20px;
+        }
+        .button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: rgba(0, 0, 0, 0.6);
+            border: none;
+            color: white;
+            font-size: 1.2em;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .button:hover {
+            background-color: #ffb74d;
+        }
+        .light-mode {
+            background-color: #fff;
+            color: black;
+        }
+        .dark-mode {
+            background-color: #222;
+            color: white;
+        }
+        #date {
+            font-size: 2em;
+            margin-top: 10px;
+        }
+        #countdown {
+            font-size: 3em;
+            margin-top: 10px;
+        }
+        input[type="number"] {
+            font-size: 1.2em;
+            padding: 10px;
+            width: 100px;
+            margin: 10px;
+        }
+        footer {
+            margin-top: 50px;
+            font-size: 0.8em;
+            color: #888;
+        }
+        .fullscreen {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="clock">00:00:00</div>
+    <div id="date">Date: 2025-01-09</div>
+    <div id="timezone">Timezone: Local</div>
+
+    <!-- Countdown Timer -->
+    <div class="countdown-container">
+        <label for="countdown-input">Set Countdown Time (in seconds): </label>
+        <input type="number" id="countdown-input" placeholder="Seconds" />
+        <button class="button" onclick="startCountdown()">Start Countdown</button>
+        <button class="button" onclick="resetCountdown()">Reset Countdown</button>
+        <div id="countdown">00:00</div>
+    </div>
+
+    <!-- Time Format Toggle -->
+    <button class="button" onclick="toggleTimeFormat()">Toggle 12/24 Hour Format</button>
+
+    <!-- Color Customization -->
+    <button class="button" onclick="customizeColors()">Customize Clock Colors</button>
+
+    <!-- Fullscreen Mode -->
+    <button class="button fullscreen" onclick="toggleFullscreen()">Toggle Fullscreen</button>
+
+    <button class="button" onclick="toggleMode()">Toggle Dark/Light Mode</button>
+    <button class="button" onclick="changeTimezone()">Change Timezone</button>
+</div>
+
+<!-- Footer Credit -->
+<footer>
+    <p>Credits: Muddu</p>
+</footer>
+
+<script>
+    let isDarkMode = true;
+    let is24HourFormat = true;
+    let currentTimezone = 'local';
+    let countdownInterval = null;
+    let countdownTime = 0; // in seconds
+
+    // Function to update clock every second
+    function updateClock() {
+        let time = new Date();
+        let hours = time.getHours();
+        let minutes = time.getMinutes();
+        let seconds = time.getSeconds();
+        
+        // Format time with leading zeros
+        if (!is24HourFormat && hours > 12) hours -= 12;
+        hours = (hours < 10) ? '0' + hours : hours;
+        minutes = (minutes < 10) ? '0' + minutes : minutes;
+        seconds = (seconds < 10) ? '0' + seconds : seconds;
+
+        // Format the time display
+        let timeString = `${hours}:${minutes}:${seconds}`;
+        
+        // Update clock display
+        document.getElementById('clock').innerText = timeString;
+
+        // Update date display
+        const date = time.toDateString();
+        document.getElementById('date').innerText = `Date: ${date}`;
+
+        // Change background color based on time of day
+        if (hours >= 6 && hours < 12) {
+            document.body.style.backgroundColor = "#87ceeb"; // Morning
+        } else if (hours >= 12 && hours < 18) {
+            document.body.style.backgroundColor = "#ffb74d"; // Afternoon
+        } else {
+            document.body.style.backgroundColor = "#333"; // Evening/Night
+        }
+    }
+
+    // Countdown functionality
+    function startCountdown() {
+        const countdownInput = document.getElementById('countdown-input').value;
+        if (countdownInput && countdownInput > 0) {
+            countdownTime = parseInt(countdownInput, 10); // Get countdown time in seconds
+            if (countdownInterval) clearInterval(countdownInterval); // Clear any existing countdown
+
+            countdownInterval = setInterval(function() {
+                if (countdownTime > 0) {
+                    countdownTime--;
+                    let minutes = Math.floor(countdownTime / 60);
+                    let seconds = countdownTime % 60;
+                    document.getElementById('countdown').innerText = `${(minutes < 10) ? '0' + minutes : minutes}:${(seconds < 10) ? '0' + seconds : seconds}`;
+                } else {
+                    clearInterval(countdownInterval); // Stop countdown when it reaches 0
+                    document.getElementById('countdown').innerText = "Time's up!";
+                }
+            }, 1000);
+        } else {
+            alert("Please enter a valid countdown time.");
+        }
+    }
+
+    function resetCountdown() {
+        if (countdownInterval) clearInterval(countdownInterval); // Stop the countdown
+        countdownTime = 0;
+        document.getElementById('countdown').innerText = '00:00';
+    }
+
+    // Toggle 12/24 Hour Format
+    function toggleTimeFormat() {
+        is24HourFormat = !is24HourFormat;
+        updateClock(); // Update the clock display immediately after toggling format
+    }
+
+    // Customize Clock Colors
+    function customizeColors() {
+        let clockColor = prompt("Enter clock text color (e.g., white, red, blue):", "white");
+        let bgColor = prompt("Enter background color (e.g., #222, black, green):", "#222");
+
+        document.getElementById('clock').style.color = clockColor;
+        document.body.style.backgroundColor = bgColor;
+    }
+
+    // Fullscreen Mode
+    function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+        } else {
+            document.exitFullscreen();
+        }
+    }
+
+    // Toggle Dark/Light Mode
+    function toggleMode() {
+        const body = document.body;
+        if (isDarkMode) {
+            body.classList.remove('dark-mode');
+            body.classList.add('light-mode');
+        } else {
+            body.classList.remove('light-mode');
+            body.classList.add('dark-mode');
+        }
+        isDarkMode = !isDarkMode;
+    }
+
+    // Change Timezone
+    function changeTimezone() {
+        if (currentTimezone === 'local') {
+            currentTimezone = 'UTC';
+            document.getElementById('timezone').innerText = 'Timezone: UTC';
+        } else {
+            currentTimezone = 'local';
+            document.getElementById('timezone').innerText = 'Timezone: Local';
+        }
+        updateClock();
+    }
+
+    // Initialize clock and start the interval
+    setInterval(updateClock, 1000);
+</script>
+
+</body>
+</html>
